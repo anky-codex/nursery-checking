@@ -122,6 +122,43 @@ The tests always use a temporary SQLite database, whatever is in your `.env`.
 
 Keep `php artisan serve` running. Use a second terminal for these. (On Windows PowerShell, type `curl.exe` instead of `curl`, or use Postman.)
 
+### Test with Postman
+
+Create each request in Postman using the method and URL shown below. For **all three requests**, open the **Headers** tab and add:
+
+| Key | Value |
+| --- | --- |
+| `X-Tenant-ID` | `1` |
+| `Accept` | `application/json` |
+
+1. **Check Amara in**
+   - Method: `POST`
+   - URL: `http://127.0.0.1:8000/rooms/1/check-ins`
+   - Open **Body**, select **raw** and choose **JSON**, then enter:
+
+     ```json
+     {
+       "child_id": 1
+     }
+     ```
+
+   - Click **Send**. The response should be `201 Created`. Note the `id` in the response; it identifies this check-in.
+
+2. **See who is in Sunflowers**
+   - Method: `GET` (the occupants endpoint does not accept `POST`)
+   - URL: `http://127.0.0.1:8000/rooms/1/occupants`
+   - No request body is needed. Click **Send**; the response should be `200 OK` and include Amara.
+
+3. **Check Amara out**
+   - Method: `POST`
+   - URL: `http://127.0.0.1:8000/check-ins/{id}/check-out`
+   - Replace `{id}` with the check-in `id` returned in step 1. For example, if the response had `"id": 7`, use `http://127.0.0.1:8000/check-ins/7/check-out`.
+   - No request body is needed. Click **Send**; the response should be `200 OK`.
+
+If step 1 returns `409 Conflict`, Amara already has an open check-in. Check her out using that check-in's `id` first, or reset the local sample data with `php artisan migrate:fresh --seed` (this deletes and recreates the local database data).
+
+### Test with curl
+
 ```bash
 # 1. Put Amara in Sunflowers
 curl -i -X POST http://127.0.0.1:8000/rooms/1/check-ins \
